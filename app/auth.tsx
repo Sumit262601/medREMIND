@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -8,9 +8,48 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width } = Dimensions.get('window');
 
 export default function AuthScreen() {
+
     const [hasBiometrics, setHasBiometrics] = useState(false);
     const [isAuthenticating, setIsAuthenticating] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string |  null>(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        checkBiometrics();
+    }, []);
+
+    const checkBiometrics = async () => {
+        const hasHardware = await LocalAuthentication.hasHardwareAsync();
+        const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+        setHasBiometrics(hasHardware && isEnrolled);
+    };
+
+    const authenticate = async () => {
+        try {
+            setIsAuthenticating(true);
+            setError(null);
+
+            const hasHardware = await LocalAuthentication.hasHardwareAsync();
+            const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+            const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
+
+            const auth = await LocalAuthentication.authenticateAsync({
+                promptMessage: hasHardware && isEnrolled ? 'Touch ID' : 'Enter your PIN to access meditatoins',
+                fallbackLabel: 'Use PIN',
+                cancelLabel: 'Cancel',
+                disableDeviceFallback: false,
+            });
+
+            if(auth.success){
+                router.replace('/');
+            }
+            else {
+                setError('Authentication failed: Please try again');
+            }
+
+        } catch (error) {}
+    }
+
     return (
         <LinearGradient colors={["#4CAF50", "#2E7D32"]} style={styles.container}>
             <View style={styles.content}>
@@ -25,35 +64,35 @@ export default function AuthScreen() {
                     Your Personal Medication Reminder
                 </Text>
 
-                <View style={styles.card}>      
+                <View style={styles.card}>
                     <Text style={styles.welcomeText}>
                         Welcome Back!
                     </Text>
                     <Text style={styles.instructionText}>
                         {hasBiometrics
-                            ? 'Use face ID/TouchId Or PIN to access your medications'
+                            ? 'TouchId Or PIN to access your medications'
                             : 'Enter your PIN to access your medications'}
                     </Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={[styles.button, isAuthenticating && styles.buttonDisable]}
-                        // onPress={authenticated}
+                        onPress={authenticate}
                         disabled={isAuthenticating}
                     >
-                        <Ionicons 
+                        <Ionicons
                             name={hasBiometrics ? 'finger-print-outline' : 'keypad-outline'}
                             size={24}
                             color='white'
                         />
-                        <Text style={styles.buttonText}> 
+                        <Text style={styles.buttonText}>
                             {isAuthenticating ? 'Verifing...' : hasBiometrics ? 'Authenticate' : 'Enter PIN'}
                         </Text>
                     </TouchableOpacity>
 
-                    {error && 
+                    {error &&
                         <View style={styles.errorContainer}>
                             <Ionicons name="alert-circle" size={24} color={'#f44336'} />
                             <View style={styles.errorText}>{error}</View>
-                        </View> }
+                        </View>}
 
                 </View>
 
@@ -87,7 +126,7 @@ const styles = StyleSheet.create({
         color: 'white',
         marginBottom: 10,
         textShadowColor: "rgba(0, 0, 0, 0.2)",
-        textShadowOffset: { width: 1, height: 1 }, 
+        textShadowOffset: { width: 1, height: 1 },
         textShadowRadius: 3,
     },
     subtitle: {
@@ -125,14 +164,14 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     button: {
-        backgroundColor: '#4CAF50',
+        width: "100%",
         borderRadius: 20,
         paddingVertical: 15,
         paddingHorizontal: 30,
-        width: "100%",
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
+        backgroundColor: '#4CAF50',
     },
     buttonDisable: {
         color: 'white',
@@ -146,7 +185,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: 'white',
         fontSize: 16,
-        fontWeight: "600"
+        fontWeight: "600",
     },
     errorContainer: {
         flexDirection: 'row',
