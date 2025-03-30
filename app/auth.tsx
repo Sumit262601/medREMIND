@@ -11,7 +11,7 @@ export default function AuthScreen() {
 
     const [hasBiometrics, setHasBiometrics] = useState(false);
     const [isAuthenticating, setIsAuthenticating] = useState(false);
-    const [error, setError] = useState<string |  null>(null);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -34,20 +34,20 @@ export default function AuthScreen() {
             const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
 
             const auth = await LocalAuthentication.authenticateAsync({
-                promptMessage: hasHardware && isEnrolled ? 'Touch ID' : 'Enter your PIN to access meditatoins',
+                promptMessage: hasHardware && isEnrolled ? 'Welcome to use MedReminder' : 'Enter your PIN to access meditatoins',
                 fallbackLabel: 'Use PIN',
                 cancelLabel: 'Cancel',
                 disableDeviceFallback: false,
             });
 
-            if(auth.success){
+            if (auth.success) {
                 router.replace('/');
             }
             else {
                 setError('Authentication failed: Please try again');
             }
 
-        } catch (error) {}
+        } catch (error) { }
     }
 
     return (
@@ -91,7 +91,7 @@ export default function AuthScreen() {
                     {error &&
                         <View style={styles.errorContainer}>
                             <Ionicons name="alert-circle" size={24} color={'#f44336'} />
-                            <View style={styles.errorText}>{error}</View>
+                            <View style={styles.errorText}>Please try again!</View>
                         </View>}
 
                 </View>
@@ -174,10 +174,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#4CAF50',
     },
     buttonDisable: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: "600",
-
+        opacity: 0.7,
     },
     buttonIcon: {
         marginRight: 10,
