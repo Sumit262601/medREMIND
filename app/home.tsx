@@ -75,10 +75,10 @@ export default function HomeScreen() {
     return (
         <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
             <LinearGradient colors={["#1a8e2d", "#146922"]} style={styles.header}>
-                <View>
-                    <View>
+                <View style={styles.headerContent}>
+                    <View style={styles.headerTop}>
                         <View>
-                            <Text>Daily Progress</Text>
+                            <Text style={styles.greeting}>Daily Progress</Text>
                         </View>
                         <TouchableOpacity>
                             <Ionicons name="notifications-outline" size={24} color="white" />
@@ -107,5 +107,22 @@ const styles = StyleSheet.create({
     headerContent: {
         alignItems: 'center',
         paddingHorizontal: 20,
+    },
+    headerTop: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
+        marginBottom: 20,
+    },
+    greeting: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "white",
+        opacity: 0.9,
+    },
+    content: {
+        flex: 1,
+        // paddingHorizontal: 20,
+        paddingTop: 20,
     }
 })
