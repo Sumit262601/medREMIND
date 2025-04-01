@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import * as LocalAuthentication from 'expo-local-authentication';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 const { width } = Dimensions.get('window');
 
@@ -74,7 +74,7 @@ export default function AuthScreen() {
                             : 'Enter your PIN to access your medications'}
                     </Text>
                     <TouchableOpacity
-                        style={[styles.button, isAuthenticating && styles.buttonDisable]}
+                        style={[styles.button, isAuthenticating && styles.buttonDisable]} 
                         onPress={authenticate}
                         disabled={isAuthenticating}
                     >
