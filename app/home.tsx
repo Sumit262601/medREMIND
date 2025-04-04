@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Animated, Dimensions, StyleSheet } from "react-native";
 import Svg, { Circle } from "react-native-svg";
@@ -104,6 +104,8 @@ function CircularProgress({
 }
 
 export default function HomeScreen() {
+
+    const router = useRouter();
     return (
         <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
             <LinearGradient colors={["#1a8e2d", "#146922"]} style={styles.header}>
@@ -127,30 +129,41 @@ export default function HomeScreen() {
             </LinearGradient>
 
             <View style={styles.content}>
-                <View>
-                    <Text>Quick Actions</Text>
-                </View>
-                <View>
-                    {
-                        QUICK_ACTIONS.map((action, index) => (
-                            <Link href={action.route} key={action.label} asChild>
-                                <TouchableOpacity>
-                                    <LinearGradient colors={action.gradient} style={styles.quickActionButton}>
-                                        <View>
-                                            <View>
-                                                <Ionicons name={action.icon} size={24} color="white" />
+                <View style={styles.quickActionContainer}>
+                    <Text style={styles.sectionTitle}>Quick Actions</Text>
+                    <View style={styles.quickActionGrid}>
+                        {
+                            QUICK_ACTIONS.map((action, index) => (
+                                // as any
+                                <Link href={action.route} key={action.label} asChild>
+                                    <TouchableOpacity style={styles.actionButton}>
+                                        <LinearGradient colors={action.gradient} style={styles.actionGradient}>
+                                            <View style={styles.actionContent}>
+                                                <View style={styles.actionIcon}>
+                                                    <Ionicons name={action.icon} size={24} color="white" />
+                                                </View>
+                                                <Text style={styles.actionLabel}>
+                                                    {action.label}
+                                                </Text>
                                             </View>
-                                            <Text>
-                                                {action.label}
-                                            </Text>
-                                        </View>
-                                    </LinearGradient>
-                                </TouchableOpacity>
-                            </Link>
-                        ))
-                    }
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </Link>
+                            ))
+                        }
+                    </View>
                 </View>
+            </View>
 
+            <View>
+                <View>
+                    <Text>Today's Schedule</Text>
+                    <Link rel="stylesheet" href="/calendar">
+                        <TouchableOpacity>
+                            <Text>Sell All</Text>
+                        </TouchableOpacity>
+                    </Link>
+                </View>
             </View>
 
         </ScrollView>
@@ -242,5 +255,50 @@ const styles = StyleSheet.create({
     },
     progressRing: {
         transform: [{ rotate: "-90deg" }],
+    },
+    quickActionContainer: {
+        paddingHorizontal: 20,
+        marginBottom: 25,
+    },
+    quickActionGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 12,
+        marginTop: 15,
+    },
+    actionButton: {
+        width: (width - 52) / 2,
+        height: 110,
+        borderRadius: 16,
+        overflow: "hidden",
+    },
+    actionGradient: {
+        flex: 1,
+        padding: 15,
+    },
+    actionIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        backgroundColor: "rgba(255, 255, 255, 0.2)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    actionLabel: {
+        fontSize: 14,
+        color: "white",
+        fontWeight: "600",
+        marginTop: 8,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: "700",
+        color: "#1a1a1a",
+        marginBottom: 15,
+    },
+    actionContent: {
+        flex: 1,
+        justifyContent: "space-between",
     }
+
 })
