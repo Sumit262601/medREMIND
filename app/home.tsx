@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link, useRouter } from "expo-router";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Animated, Dimensions, StyleSheet } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Animated, Dimensions, StyleSheet, Touchable, Modal } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 const { width } = Dimensions.get('window');
@@ -135,7 +135,7 @@ export default function HomeScreen() {
                         {
                             QUICK_ACTIONS.map((action, index) => (
                                 // as any
-                                <Link href={action.route} key={action.label} asChild>
+                                <Link href={action.route as any} key={action.label} asChild>
                                     <TouchableOpacity style={styles.actionButton}>
                                         <LinearGradient colors={action.gradient} style={styles.actionGradient}>
                                             <View style={styles.actionContent}>
@@ -155,19 +155,80 @@ export default function HomeScreen() {
                 </View>
             </View>
 
-            <View>
-                <View>
-                    <Text>Today's Schedule</Text>
-                    <Link rel="stylesheet" href="/calendar">
+            <View style={{ paddingHorizontal: 20 }}>
+                <View style={styles.seactionHeader}>
+                    <Text style={styles.sectionTitle}>Today's Schedule</Text>
+                    <Link href={"/calendar" as any} asChild>
                         <TouchableOpacity>
-                            <Text>Sell All</Text>
+                            <Text style={styles.seeAllButton}>Sell All</Text>
                         </TouchableOpacity>
                     </Link>
                 </View>
+
+                {true ? (
+                    <View style={styles.emptyState}>
+                        <Ionicons name="medical-outline" size={48} color="#ccc" />
+                        <Text style={styles.emptyStateText}>No Medications Scheduled for today</Text>
+                        <Link href={"/medications/add" as any} asChild>
+                            <TouchableOpacity style={styles.addMedicationButton}>
+                                <Text style={styles.addMedicationButtonText}>Add Medication</Text>
+                            </TouchableOpacity>
+                        </Link>
+                    </View>
+                ) : (
+                    [].map((medications) => {
+                        // const taken = 
+                        return (
+                            <View style={styles.doseCard}>
+                                <View style={[styles.doseBadge,
+                                    // { 
+                                    //     backgroundColor: "#4CAF50" 
+                                    // }
+                                ]}>
+                                    <Ionicons name="medical" size={24} />
+                                </View>
+                                <View style={styles.doseInfo}>
+                                    <View>
+                                        <Text style={styles.medicineName}>time</Text>
+                                        <Text style={styles.doseInfo}>dosage</Text>
+                                    </View>
+                                    <View style={styles.doseTime}>
+                                        <Ionicons name="time-outline" size={16} color="#ccc" />
+                                        <Text style={styles.timeText}>time</Text>
+                                    </View>
+                                </View>
+
+                                {true ? (
+                                    <View style={styles.takeDoseButton}>
+                                        <Ionicons name="checkmark-circle-outline" size={24} color="#4CAF50" />
+                                        <Text style={styles.takeDoseText}>Taken</Text>
+                                    </View>
+                                ) : (
+                                    <TouchableOpacity style={styles.takeDoseButton}>
+                                        <Text style={styles.takeDoseText}>Take</Text>
+                                    </TouchableOpacity>
+                                )};
+                            </View>
+                        );
+                    })
+                )}
             </View>
 
+            <Modal visible={false} animationType="slide" transparent={true}>
+                <View>
+                    <View>
+                        <Text>
+                            Notification
+                        </Text>
+                        <TouchableOpacity>
+                            <Ionicons name="close" size={24} color="#333" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
         </ScrollView>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
@@ -299,6 +360,93 @@ const styles = StyleSheet.create({
     actionContent: {
         flex: 1,
         justifyContent: "space-between",
+    },
+    seactionHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+    seeAllButton: {
+        color: "#2E7D32",
+        fontWeight: "600",
+    },
+    emptyState: {
+        alignItems: "center",
+        padding: 30,
+        backgroundColor: "white",
+        borderRadius: 16,
+        marginTop: 10,
+    },
+    emptyStateText: {
+        fontSize: 16,
+        color: "#666",
+        marginTop: 10,
+        marginBottom: 20,
+    },
+    addMedicationButton: {
+        backgroundColor: "#1a8e2d",
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+    },
+    addMedicationButtonText: {
+        color: "white",
+        fontWeight: "600",
+    },
+    doseCard: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "white",
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    doseBadge: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 15,
+    },
+    medicineName: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#333",
+        marginBottom: 4,
+    },
+    doseInfo: {
+        fontSize: 14,
+        color: "#666",
+        marginBottom: 4,
+    },
+    doseTime: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    timeText: {
+        marginLeft: 5,
+        color: "#666",
+        fontSize: 14,
+    },
+    takeDoseButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 15,
+        marginLeft: 10,
+    },
+    takeDoseText: {
+        fontSize: 14,
+        color: "white",
+        fontWeight: "600",
+
     }
+
 
 })
