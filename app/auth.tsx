@@ -31,10 +31,9 @@ export default function AuthScreen() {
 
             const hasHardware = await LocalAuthentication.hasHardwareAsync();
             const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-            const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
 
             const auth = await LocalAuthentication.authenticateAsync({
-                promptMessage: hasHardware && isEnrolled ? 'Welcome to use MedReminder' : 'Enter your PIN to access meditatoins',
+                promptMessage: hasHardware && isEnrolled ? 'Unlock to use MedReminder' : 'Enter your PIN to access medications',
                 fallbackLabel: 'Use PIN',
                 cancelLabel: 'Cancel',
                 disableDeviceFallback: false,
@@ -42,13 +41,16 @@ export default function AuthScreen() {
 
             if (auth.success) {
                 router.replace('/home');
+            } else {
+                setError('Authentication failed. Please try again');
             }
-            else {
-                setError('Authentication failed: Please try again');
-            }
-
-        } catch (error) { }
-    }
+        } catch (error) {
+            console.error(error);
+            setError('An error occurred. Please try again');
+        } finally {
+            setIsAuthenticating(false); // Always reset the authenticating state
+        }
+    };
 
     return (
         <LinearGradient colors={["#4CAF50", "#2E7D32"]} style={styles.container}>
@@ -58,7 +60,7 @@ export default function AuthScreen() {
                 </View>
 
                 <Text style={styles.title}>
-                    MedRemin
+                    MedReminder
                 </Text>
                 <Text style={styles.subtitle}>
                     Your Personal Medication Reminder
@@ -69,12 +71,14 @@ export default function AuthScreen() {
                         Welcome Back!
                     </Text>
                     <Text style={styles.instructionText}>
-                        {hasBiometrics
-                            ? 'TouchId Or PIN to access your medications'
-                            : 'Enter your PIN to access your medications'}
+                        {
+                            hasBiometrics
+                                ? 'Use Biometrics to access your medications'
+                                : 'Enter your PIN to access your medications'
+                        }
                     </Text>
                     <TouchableOpacity
-                        style={[styles.button, isAuthenticating && styles.buttonDisable]} 
+                        style={[styles.button, isAuthenticating && styles.buttonDisable]}
                         onPress={authenticate}
                         disabled={isAuthenticating}
                     >
@@ -91,9 +95,9 @@ export default function AuthScreen() {
                     {error &&
                         <View style={styles.errorContainer}>
                             <Ionicons name="alert-circle" size={24} color={'#f44336'} />
-                            <View style={styles.errorText}>Please try again!</View>
-                        </View>}
-
+                            <Text style={styles.errorText}>Please try again!</Text>
+                        </View>
+                    }
                 </View>
 
             </View>
@@ -193,7 +197,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     errorText: {
-        color: '#f44336',
+        color: '#000',
         fontSize: 14,
         marginLeft: 8,
     }

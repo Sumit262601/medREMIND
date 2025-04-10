@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Link } from "expo-router";
 
 const FREQUENCIES = [
     {
@@ -128,17 +129,19 @@ export default function AddMedicationScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.headerGradient}
             />
-            <View style={styles.content}> 
+            <View style={styles.content}>
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backButton}>
-                        <Ionicons name="chevron-back" size={28} color={'#1a8e2d'} />
+                        <Link href={"/home"}>
+                            <Ionicons name="chevron-back" size={28} color={'#1a8e2d'} />
+                        </Link>
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>New Medication</Text>
                 </View>
 
                 {/*  */}
-                <ScrollView showsHorizontalScrollIndicator={false} 
-                    style={{ flex: 1}}
+                <ScrollView showsHorizontalScrollIndicator={false}
+                    style={{ flex: 1 }}
                     contentContainerStyle={styles.formContentContainer}
                 >
                     {/* basic informations to add medications */}
@@ -283,7 +286,7 @@ export default function AddMedicationScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#f8f9fa", 
+        backgroundColor: "#f8f9fa",
     },
     headerGradient: {
         position: 'absolute',
@@ -326,6 +329,6 @@ const styles = StyleSheet.create({
         marginLeft: 15,
     },
     formContentContainer: {
-        
+
     }
 })
