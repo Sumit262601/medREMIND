@@ -14,7 +14,7 @@ export default function RootLayout() {
           navigationBarHidden: true,
         }}
       >
-        <Stack.Screen name='/' options={{ headerShown: false }} />
+        <Stack.Screen name='index' options={{ headerShown: false }} />
         <Stack.Screen name='medications/add'
           options={
             {

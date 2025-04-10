@@ -145,9 +145,10 @@ export default function AddMedicationScreen() {
                     contentContainerStyle={styles.formContentContainer}
                 >
                     {/* basic informations to add medications */}
-                    <View>
-                        <View>
+                    <View style={styles.section}>
+                        <View style={styles.inputContainer}>
                             <TextInput
+                                style={[styles.mainInput, styles.inputError]}
                                 placeholder="Medication Name"
                                 placeholderTextColor={'#999'}
                             />
@@ -182,20 +183,6 @@ export default function AddMedicationScreen() {
                             </View>
                             <Text>Time: {form.times[0]}</Text>
                         </TouchableOpacity>
-
-                        {/* <DateTimePicker
-                            value={form.startDate}
-                            mode="date"
-                        />
-                        <DateTimePicker
-                            mode="time"
-                            value={(() => {
-                                const [hours, mintues] = form.times[0].split(":").map(Number);
-                                const date = new Date();
-                                date.setHours(hours, mintues, 0, 0);
-                                return date;
-                            })()}
-                        /> */}
 
                         {showDatePicker && (
                             <DateTimePicker
@@ -329,6 +316,45 @@ const styles = StyleSheet.create({
         marginLeft: 15,
     },
     formContentContainer: {
-
-    }
+        padding: 20,
+    },
+    section: {
+        marginBottom: 25,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 15,
+        color: '#1a1a1a',
+        marginTop: 10,
+    }, mainInput: {
+        fontSize: 20,
+        color: "#333",
+        padding: 15,
+    },
+    inputContainer: {
+        backgroundColor: "white",
+        borderRadius: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: "#e0e0e0",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    }, 
+    inputError: {
+        borderColor: "#FF5252",
+    },
+    errorText: {
+        color: "#FF5252",
+        fontSize: 12,
+        marginTop: 4,
+        marginLeft: 12
+    },
+    
 })
