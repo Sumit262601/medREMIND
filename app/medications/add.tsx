@@ -22,13 +22,13 @@ const FREQUENCIES = [
     },
     {
         id: "3",
-        label: "Three times daily",
+        label: "Three times",
         icon: "time-outline" as const,
         times: ["09:00", "15:00", "21:00"],
     },
     {
         id: "4",
-        label: "Four times daily",
+        label: "Four times",
         icon: "repeat-outline" as const,
         times: ["09:00", "13:00", "17:00", "21:00"],
     },
@@ -50,8 +50,6 @@ const DURATIONS = [
 ]
 
 export default function AddMedicationScreen() {
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
 
     const [form, setForm] = useState({
         name: "",
@@ -66,9 +64,6 @@ export default function AddMedicationScreen() {
         currentSupply: "",
         refillAt: "",
     });
-
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [selectedFrequency, setSelectedFrequency] = useState("");
 
     const onDateChange = (event: any, selectedDate?: Date) => {
         setShowDatePicker(Platform.OS === 'ios');
@@ -86,6 +81,12 @@ export default function AddMedicationScreen() {
         }
     };
 
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [selectedFrequency, setSelectedFrequency] = useState("");
+    const [selectedDuration, setSelectedDuration] = useState("");
+    const [showTimePicker, setShowTimePicker] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
     const renderFrequencyOptions = () => {
         return (
             <View style={styles.optionsGrid}>
@@ -100,18 +101,19 @@ export default function AddMedicationScreen() {
                     >
                         <View style={[
                             styles.optionIcon,
-                            selectedFrequency === freq.label && styles.selectedOptionCard
+                            selectedFrequency === freq.label && styles.selectedOptionIcon
 
                         ]}>
                             <Ionicons
                                 name={freq.icon}
-                                size={14}
+                                size={24}
                                 color={selectedFrequency === freq.label ? "white" : "#666"}
+                                style={{ alignSelf: "center" }}
                             />
                             <Text
                                 style={[
                                     styles.optionLabel,
-                                    selectedFrequency === freq.label && styles.selectedOptionCard
+                                    selectedFrequency === freq.label && styles.selectedOptionLabel
                                 ]}
                             >
                                 {freq.label}
@@ -125,16 +127,28 @@ export default function AddMedicationScreen() {
 
     const renderDurationOptions = () => {
         return (
-            <View>
+            <View style={styles.optionsGrid}>
                 {DURATIONS.map((dur) => (
                     <TouchableOpacity
                         key={dur.id}
+                        style={[
+                            styles.optionCard,
+                            selectedDuration === dur.label && styles.selectedOptionCard
+                        ]}
                     // onPrress={ }
                     >
-                        <View>
-                            <Text>{dur.value > 0 ? dur.value : "∞"}</Text>
-                            <Text>{dur.label}</Text>
-                        </View>
+                        <Text
+                            style={[
+                                styles.durationNumber,
+                                selectedDuration === dur.label && styles.selectedDurationNumber
+                            ]}
+                        >{dur.value > 0 ? dur.value : "∞"}</Text>
+                        <Text
+                            style={[
+                                styles.optionLabel,
+                                selectedDuration === dur.label && styles.selectedOptionLabel
+                            ]}
+                        >{dur.label}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -151,11 +165,11 @@ export default function AddMedicationScreen() {
             />
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Link href={"/home"}>
-                        <TouchableOpacity style={styles.backButton}>
+                    <TouchableOpacity style={styles.backButton}>
+                        <Link href={"/home"}>
                             <Ionicons name="chevron-back" size={28} color={'#1a8e2d'} />
-                        </TouchableOpacity>
-                    </Link>
+                        </Link>
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>New Medication</Text>
                 </View>
 
@@ -206,22 +220,33 @@ export default function AddMedicationScreen() {
 
                     {/* schedule */}
                     <View style={styles.container}>
-                        <Text style={styles.sectionTitle}>How often?</Text>
+
+                        <Text style={styles.sectionTitle}>
+                            How often?
+                        </Text>
                         {errors.frequency && (<Text style={styles.errorText}>{errors.frequency}</Text>)}
                         {renderFrequencyOptions()}
-                        {/* render frequency options */}
 
-                        <Text style={styles.sectionTitle}>For how long?</Text>
+
+                        <Text style={styles.sectionTitle}>
+                            For how long?
+                        </Text>
                         {errors.duration && (<Text style={styles.errorText}>{errors.duration}</Text>)}
                         {renderDurationOptions()}
-                        {/* rebder duration options */}
 
-                        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-                            <View>
-                                <Ionicons name="calendar" size={24} color={"#1a8e2d"} />
+                        <TouchableOpacity
+                            onPress={() => setShowDatePicker(true)}
+                            style={styles.dateButton}
+                        >
+                            <View style={styles.dateIconContainer}>
+                                <Ionicons style={{ alignSelf: "center" }} name="calendar" size={24} color={"#1a8e2d"} />
                             </View>
-                            <Text>Starts: {form.startDate.toLocaleDateString()}</Text>
+                            <Text style={styles.dateButtonText}>
+                                Starts {form.startDate.toLocaleDateString()}
+                            </Text>
+                            <Ionicons name="chevron-forward" size={20} color={"#666"} />
                         </TouchableOpacity>
+
                         <TouchableOpacity onPress={() => setShowTimePicker(true)}>
                             <View>
                                 <Ionicons name="time" size={24} color={"#1a8e2d"} />
@@ -231,12 +256,14 @@ export default function AddMedicationScreen() {
 
                         {showDatePicker && (
                             <DateTimePicker
-                                testID="datePicker"
                                 value={form.startDate}
                                 mode="date"
-                                is24Hour={true}
-                                onChange={onDateChange}
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, date) => {
+                                    setShowDatePicker(false);
+                                    if (date) {
+                                        setForm({ ...form, startDate: date });
+                                    }
+                                }}
                             />
                         )}
 
@@ -250,7 +277,7 @@ export default function AddMedicationScreen() {
                                     return date;
                                 })()}
                                 onChange={onTimeChange}
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            // display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             />
                         )}
                     </View>
@@ -326,7 +353,7 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0,
         right: 0,
-        height: Platform.OS == 'ios' ? 180 : 140,
+        height: Platform.OS == 'ios' ? 180 : 160,
     },
     content: {
         flex: 1,
@@ -370,9 +397,9 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '700',
+        color: '#1a1a1a',
         marginBottom: 15,
         marginTop: 10,
-        color: '#1a1a1a',
     },
     mainInput: {
         fontSize: 20,
@@ -418,13 +445,13 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#e0e0e0",
         shadowColor: "#000",
+        shadowRadius: 8,
         shadowOpacity: 0.05,
         shadowOffset: {
             width: 0,
             height: 2
         },
         elevation: 2,
-        shadowRadius: 8,
     },
     selectedOptionCard: {
         backgroundColor: "#1a8e2d",
@@ -449,7 +476,47 @@ const styles = StyleSheet.create({
         textAlign: "center"
     },
     selectedOptionLabel: {
-        color: "White",
-    }
-
+        color: "white",
+    },
+    durationNumber: {
+        fontSize: 24,
+        fontWeight: "700",
+        color: "#1a8e2d",
+        marginBottom: 5,
+    },
+    selectedDurationNumber: {
+        color: "white",
+    },
+    dateButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "white",
+        borderRadius: 16,
+        padding: 15,
+        marginTop: 15,
+        borderWidth: 1,
+        borderColor: "#e0e0e0",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowRadius: 8,
+        shadowOpacity: 0.05,
+        elevation: 2,
+    },
+    dateIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "#f5f5f5",
+        justifyContent: "center",
+        alignContent: "center",
+        marginRight: 10,
+    },
+    dateButtonText: {
+        flex: 1,
+        fontSize: 16,
+        color: "#333",
+    },
 })
