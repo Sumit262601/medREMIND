@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, Dimensions, Platform, Alert } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, Platform, Alert, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Link } from "expo-router";
+
+const { width } = Dimensions.get("window");
 
 const FREQUENCIES = [
     {
@@ -65,6 +67,9 @@ export default function AddMedicationScreen() {
         refillAt: "",
     });
 
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [selectedFrequency, setSelectedFrequency] = useState("");
+
     const onDateChange = (event: any, selectedDate?: Date) => {
         setShowDatePicker(Platform.OS === 'ios');
         if (selectedDate) {
@@ -83,19 +88,34 @@ export default function AddMedicationScreen() {
 
     const renderFrequencyOptions = () => {
         return (
-            <View>
+            <View style={styles.optionsGrid}>
                 {FREQUENCIES.map((freq) => (
                     <TouchableOpacity
                         key={freq.id}
+                        style={[
+                            styles.optionCard,
+                            selectedFrequency === freq.label && styles.selectedOptionCard
+                        ]}
                     // onPrress={ }
                     >
-                        <View>
+                        <View style={[
+                            styles.optionIcon,
+                            selectedFrequency === freq.label && styles.selectedOptionCard
+
+                        ]}>
                             <Ionicons
                                 name={freq.icon}
                                 size={14}
-                            // color={ }
+                                color={selectedFrequency === freq.label ? "white" : "#666"}
                             />
-                            <Text>{freq.label}</Text>
+                            <Text
+                                style={[
+                                    styles.optionLabel,
+                                    selectedFrequency === freq.label && styles.selectedOptionCard
+                                ]}
+                            >
+                                {freq.label}
+                            </Text>
                         </View>
                     </TouchableOpacity>
                 ))}
@@ -131,11 +151,11 @@ export default function AddMedicationScreen() {
             />
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.backButton}>
-                        <Link href={"/home"}>
+                    <Link href={"/home"}>
+                        <TouchableOpacity style={styles.backButton}>
                             <Ionicons name="chevron-back" size={28} color={'#1a8e2d'} />
-                        </Link>
-                    </TouchableOpacity>
+                        </TouchableOpacity>
+                    </Link>
                     <Text style={styles.headerTitle}>New Medication</Text>
                 </View>
 
@@ -148,26 +168,51 @@ export default function AddMedicationScreen() {
                     <View style={styles.section}>
                         <View style={styles.inputContainer}>
                             <TextInput
-                                style={[styles.mainInput, styles.inputError]}
+                                style={[styles.mainInput, errors.name && styles.inputError]}
                                 placeholder="Medication Name"
                                 placeholderTextColor={'#999'}
+                                value={form.name}
+                                onChangeText={(text) => {
+                                    setForm({ ...form, name: text })
+                                    if (errors.name) {
+                                        setErrors({ ...errors, name: "" })
+                                    }
+                                }}
                             />
+                            {
+                                errors.name && (
+                                    <Text style={styles.errorText}>{errors.name}</Text>)
+                            }
                         </View>
-                        <View>
+                        <View style={styles.inputContainer}>
                             <TextInput
+                                style={[styles.mainInput, errors.name && styles.inputError]}
                                 placeholder="Dosage (e.g., 500mg)"
                                 placeholderTextColor={'#999'}
+                                value={form.dosage}
+                                onChangeText={(text) => {
+                                    setForm({ ...form, dosage: text })
+                                    if (errors.dosage) {
+                                        setErrors({ ...errors, dosage: "" })
+                                    }
+                                }}
                             />
+                            {
+                                errors.dosage && (
+                                    <Text style={styles.errorText}>{errors.dosage}</Text>)
+                            }
                         </View>
                     </View>
 
                     {/* schedule */}
-                    <View>
-                        <Text>How often?</Text>
+                    <View style={styles.container}>
+                        <Text style={styles.sectionTitle}>How often?</Text>
+                        {errors.frequency && (<Text style={styles.errorText}>{errors.frequency}</Text>)}
                         {renderFrequencyOptions()}
                         {/* render frequency options */}
 
-                        <Text>For how long?</Text>
+                        <Text style={styles.sectionTitle}>For how long?</Text>
+                        {errors.duration && (<Text style={styles.errorText}>{errors.duration}</Text>)}
                         {renderDurationOptions()}
                         {/* rebder duration options */}
 
@@ -274,6 +319,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#f8f9fa",
+        borderRadius: 10,
     },
     headerGradient: {
         position: 'absolute',
@@ -284,7 +330,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingTop: Platform.OS == 'ios' ? 50 : 30,
+        paddingTop: Platform.OS == 'ios' ? 50 : 40,
     },
     header: {
         flexDirection: 'row',
@@ -325,9 +371,10 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
         marginBottom: 15,
-        color: '#1a1a1a',
         marginTop: 10,
-    }, mainInput: {
+        color: '#1a1a1a',
+    },
+    mainInput: {
         fontSize: 20,
         color: "#333",
         padding: 15,
@@ -346,7 +393,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
-    }, 
+    },
     inputError: {
         borderColor: "#FF5252",
     },
@@ -356,5 +403,53 @@ const styles = StyleSheet.create({
         marginTop: 4,
         marginLeft: 12
     },
-    
+    optionsGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        marginHorizontal: -5,
+    },
+    optionCard: {
+        width: (width - 60) / 2,
+        backgroundColor: "white",
+        borderRadius: 16,
+        padding: 15,
+        margin: 5,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "#e0e0e0",
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        elevation: 2,
+        shadowRadius: 8,
+    },
+    selectedOptionCard: {
+        backgroundColor: "#1a8e2d",
+        borderColor: "#1a8e3d"
+    },
+    optionIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: "#f5f5f5",
+        justifyContent: "center",
+        alignContent: "center",
+        marginBottom: 10,
+    },
+    selectedOptionIcon: {
+        backgroundColor: "rgba(255, 255, 255, 0.2)",
+    },
+    optionLabel: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#333",
+        textAlign: "center"
+    },
+    selectedOptionLabel: {
+        color: "White",
+    }
+
 })
