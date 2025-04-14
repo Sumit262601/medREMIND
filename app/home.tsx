@@ -103,141 +103,181 @@ function CircularProgress({
     )
 }
 
-export default function HomeScreen() {
+const HomeScreen = () => {
+    const scrollY = useRef(new Animated.Value(0)).current;
+    const headerHeight = 180; // Adjust this value based on your header height
+
+    const headerBackground = scrollY.interpolate({
+        inputRange: [0, headerHeight - 60],
+        outputRange: ["transparent", "#1a8e2d"],
+        extrapolate: 'clamp'
+    });
 
     const router = useRouter();
+
     return (
-        <ScrollView showsVerticalScrollIndicator={true} style={styles.container}>
-            <LinearGradient colors={["#1a8e2d", "#146922"]} style={styles.header}>
-                <View style={styles.headerContent}>
-                    <View style={styles.headerTop}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.greeting}>Daily Progress</Text>
-                        </View>
-                        <TouchableOpacity style={styles.notificationButton}>
-                            <Ionicons name="notifications-outline" size={24} color="white" />
-                            {
-                                <View style={styles.notificationBadage}>
-                                    <Text style={styles.notificationCount}>3</Text>
-                                </View>
-                            }
-                        </TouchableOpacity>
+        <View style={styles.container}>
+            <Animated.View
+                style={[
+                    styles.stickyHeader,
+                    { backgroundColor: headerBackground, }
+                ]}
+            >
+                <View style={styles.headerTop}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.greeting}>Daily Progress</Text>
                     </View>
-                    {/* Circular Progress bar */}
-                    <CircularProgress progress={70} total={10} completed={5} />
-                </View>
-            </LinearGradient>
-
-            <View style={styles.content}>
-                <View style={styles.quickActionContainer}>
-                    <Text style={styles.sectionTitle}>Quick Actions</Text>
-                    <View style={styles.quickActionGrid}>
+                    <TouchableOpacity style={styles.notificationButton}>
+                        <Ionicons name="notifications-outline" size={24} color="white" />
                         {
-                            QUICK_ACTIONS.map((action, index) => (
-                                // as any
-                                <Link href={action.route as any} key={action.label} asChild>
-                                    <TouchableOpacity style={styles.actionButton}>
-                                        <LinearGradient colors={action.gradient} style={styles.actionGradient}>
-                                            <View style={styles.actionContent}>
-                                                <View style={styles.actionIcon}>
-                                                    <Ionicons name={action.icon} size={24} color="white" />
-                                                </View>
-                                                <Text style={styles.actionLabel}>
-                                                    {action.label}
-                                                </Text>
-                                            </View>
-                                        </LinearGradient>
-                                    </TouchableOpacity>
-                                </Link>
-                            ))
+                            <View style={styles.notificationBadage}>
+                                <Text style={styles.notificationCount}>3</Text>
+                            </View>
                         }
+                    </TouchableOpacity>
+                </View>
+            </Animated.View>
+
+            <Animated.ScrollView
+                showsVerticalScrollIndicator={true}
+                style={styles.container}
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                    { useNativeDriver: false }
+                )}
+                scrollEventThrottle={16}
+            >
+                <LinearGradient colors={["#1a8e2d", "#146922"]} style={styles.header}>
+                    <View style={styles.headerContent}>
+                        {/* <View style={styles.headerTop}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.greeting}>Daily Progress</Text>
+                            </View>
+                            <TouchableOpacity style={styles.notificationButton}>
+                                <Ionicons name="notifications-outline" size={24} color="white" />
+                                {
+                                    <View style={styles.notificationBadage}>
+                                        <Text style={styles.notificationCount}>3</Text>
+                                    </View>
+                                }
+                            </TouchableOpacity>
+                        </View> */}
+                        {/* Circular Progress bar */}
+                        <CircularProgress progress={70} total={10} completed={5} />
+                    </View>
+                </LinearGradient>
+
+                <View style={styles.content}>
+                    <View style={styles.quickActionContainer}>
+                        <Text style={styles.sectionTitle}>Quick Actions</Text>
+                        <View style={styles.quickActionGrid}>
+                            {
+                                QUICK_ACTIONS.map((action, index) => (
+                                    // as any
+                                    <Link href={action.route as any} key={action.label} asChild>
+                                        <TouchableOpacity style={styles.actionButton}>
+                                            <LinearGradient colors={action.gradient} style={styles.actionGradient}>
+                                                <View style={styles.actionContent}>
+                                                    <View style={styles.actionIcon}>
+                                                        <Ionicons name={action.icon} size={24} color="white" />
+                                                    </View>
+                                                    <Text style={styles.actionLabel}>
+                                                        {action.label}
+                                                    </Text>
+                                                </View>
+                                            </LinearGradient>
+                                        </TouchableOpacity>
+                                    </Link>
+                                ))
+                            }
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            <View style={{ paddingHorizontal: 20 }}>
-                <View style={styles.seactionHeader}>
-                    <Text style={styles.sectionTitle}>Today's Schedule</Text>
-                    <Link href={"/calendar" as any} asChild>
-                        <TouchableOpacity>
-                            <Text style={styles.seeAllButton}>Sell All</Text>
-                        </TouchableOpacity>
-                    </Link>
-                </View>
-
-                {true ? (
-                    <View style={styles.emptyState}>
-                        <Ionicons name="medical-outline" size={48} color="#ccc" />
-                        <Text style={styles.emptyStateText}>No Medications Scheduled for today</Text>
-                        <Link href={"/medications/add" as any} asChild>
-                            <TouchableOpacity style={styles.addMedicationButton}>
-                                <Text style={styles.addMedicationButtonText}>Add Medication</Text>
+                <View style={{ paddingHorizontal: 20 }}>
+                    <View style={styles.seactionHeader}>
+                        <Text style={styles.sectionTitle}>Today's Schedule</Text>
+                        <Link href={"/calendar" as any} asChild>
+                            <TouchableOpacity>
+                                <Text style={styles.seeAllButton}>Sell All</Text>
                             </TouchableOpacity>
                         </Link>
                     </View>
-                ) : (
-                    [].map((medications) => {
-                        // const taken = 
-                        return (
-                            <View style={styles.doseCard}>
-                                <View style={[styles.doseBadge,
-                                    // { 
-                                    //     backgroundColor: "#4CAF50" 
-                                    // }
-                                ]}>
+
+                    {true ? (
+                        <View style={styles.emptyState}>
+                            <Ionicons name="medical-outline" size={48} color="#ccc" />
+                            <Text style={styles.emptyStateText}>No Medications Scheduled for today</Text>
+                            <Link href={"/medications/add" as any} asChild>
+                                <TouchableOpacity style={styles.addMedicationButton}>
+                                    <Text style={styles.addMedicationButtonText}>Add Medication</Text>
+                                </TouchableOpacity>
+                            </Link>
+                        </View>
+                    ) : (
+                        [].map((medications) => {
+                            // const taken = 
+                            return (
+                                <View style={styles.doseCard}>
+                                    <View style={[styles.doseBadge,
+                                        // { 
+                                        //     backgroundColor: "#4CAF50" 
+                                        // }
+                                    ]}>
+                                        <Ionicons name="medical" size={24} />
+                                    </View>
+                                    <View style={styles.doseInfo}>
+                                        <View>
+                                            <Text style={styles.medicineName}>time</Text>
+                                            <Text style={styles.doseInfo}>dosage</Text>
+                                        </View>
+                                        <View style={styles.doseTime}>
+                                            <Ionicons name="time-outline" size={16} color="#ccc" />
+                                            <Text style={styles.timeText}>time</Text>
+                                        </View>
+                                    </View>
+
+                                    {true ? (
+                                        <View style={styles.takeDoseButton}>
+                                            <Ionicons name="checkmark-circle-outline" size={24} color="#4CAF50" />
+                                            <Text style={styles.takeDoseText}>Taken</Text>
+                                        </View>
+                                    ) : (
+                                        <TouchableOpacity style={styles.takeDoseButton}>
+                                            <Text style={styles.takeDoseText}>Take</Text>
+                                        </TouchableOpacity>
+                                    )};
+                                </View>
+                            );
+                        })
+                    )}
+                </View>
+
+                <Modal visible={false} animationType="slide" transparent={true}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Notification</Text>
+                            <TouchableOpacity style={styles.closeButton}>
+                                <Ionicons name="close" size={24} color="#333" />
+                            </TouchableOpacity>
+                        </View>
+                        {[].map((medication) => (
+                            <View style={styles.notificationItem}>
+                                <View style={styles.notificationIcon}>
                                     <Ionicons name="medical" size={24} />
                                 </View>
-                                <View style={styles.doseInfo}>
-                                    <View>
-                                        <Text style={styles.medicineName}>time</Text>
-                                        <Text style={styles.doseInfo}>dosage</Text>
-                                    </View>
-                                    <View style={styles.doseTime}>
-                                        <Ionicons name="time-outline" size={16} color="#ccc" />
-                                        <Text style={styles.timeText}>time</Text>
-                                    </View>
+                                <View style={styles.notoficationContent}>
+                                    <Text style={styles.notificationTitle}>medication name</Text>
+                                    <Text style={styles.notificationMessage}>medication dosage</Text>
+                                    <Text style={styles.notificationTime}>medication time</Text>
                                 </View>
-
-                                {true ? (
-                                    <View style={styles.takeDoseButton}>
-                                        <Ionicons name="checkmark-circle-outline" size={24} color="#4CAF50" />
-                                        <Text style={styles.takeDoseText}>Taken</Text>
-                                    </View>
-                                ) : (
-                                    <TouchableOpacity style={styles.takeDoseButton}>
-                                        <Text style={styles.takeDoseText}>Take</Text>
-                                    </TouchableOpacity>
-                                )};
                             </View>
-                        );
-                    })
-                )}
-            </View>
-
-            <Modal visible={false} animationType="slide" transparent={true}>
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Notification</Text>
-                        <TouchableOpacity style={styles.closeButton}>
-                            <Ionicons name="close" size={24} color="#333" />
-                        </TouchableOpacity>
+                        ))}
                     </View>
-                    {[].map((medication) => (
-                        <View style={styles.notificationItem}>
-                            <View style={styles.notificationIcon}>
-                                <Ionicons name="medical" size={24} />
-                            </View>
-                            <View style={styles.notoficationContent}>
-                                <Text style={styles.notificationTitle}>medication name</Text>
-                                <Text style={styles.notificationMessage}>medication dosage</Text>
-                                <Text style={styles.notificationTime}>medication time</Text>
-                            </View>
-                        </View>
-                    ))}
-                </View>
-            </Modal>
+                </Modal>
 
-        </ScrollView>
+            </Animated.ScrollView>
+        </View>
     );
 }
 
@@ -246,17 +286,28 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#f8f9fa",
     },
+    stickyHeader: {
+        position: "absolute",
+        // top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        height: 90,
+        justifyContent: "center",
+        paddingHorizontal: 20,
+    },
     header: {
-        paddingTop: 50,
+        paddingTop: 80,
         paddingBottom: 25,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
     },
     headerContent: {
         alignItems: 'center',
-        paddingHorizontal: 20,
+        paddingHorizontal: 50,
     },
     headerTop: {
+        top: 20,
         flexDirection: "row",
         alignItems: "center",
         width: "100%",
@@ -517,6 +568,5 @@ const styles = StyleSheet.create({
         color: "#999",
     },
 
-
-
-})
+});
+export default HomeScreen;

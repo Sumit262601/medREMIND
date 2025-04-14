@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, Platform, Alert, Dimensions } from "react-native";
+import { useState, useRef } from "react";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Platform, Dimensions, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -87,6 +87,15 @@ export default function AddMedicationScreen() {
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
 
+    const router = useRouter();
+
+    const scrollY = useRef(new Animated.Value(0)).current;
+    const footerTranslateY = scrollY.interpolate({
+        inputRange: [-1, 0, 100],
+        outputRange: [0, 0, 100],
+        extrapolate: 'clamp'
+    });
+
     const renderFrequencyOptions = () => {
         return (
             <View style={styles.optionsGrid}>
@@ -154,6 +163,7 @@ export default function AddMedicationScreen() {
             </View>
         )
     };
+
     return (
         <View style={styles.container}>
             {/* Medication add */}
@@ -165,18 +175,25 @@ export default function AddMedicationScreen() {
             />
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.backButton}>
-                        <Link href={"/home"}>
-                            <Ionicons name="chevron-back" size={28} color={'#1a8e2d'} />
-                        </Link>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => router.back()}
+                    >
+                        <Ionicons name="chevron-back" size={28} color={'#1a8e2d'} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>New Medication</Text>
                 </View>
 
                 {/*  */}
-                <ScrollView showsHorizontalScrollIndicator={false}
+                <Animated.ScrollView
+                    showsHorizontalScrollIndicator={false}
                     style={{ flex: 1 }}
                     contentContainerStyle={styles.formContentContainer}
+                    onScroll={Animated.event(
+                        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                        { useNativeDriver: true }
+                    )}
+                    scrollEventThrottle={16}
                 >
                     {/* basic informations to add medications */}
                     <View style={styles.section}>
@@ -211,9 +228,8 @@ export default function AddMedicationScreen() {
                                     }
                                 }}
                             />
-                            {
-                                errors.dosage && (
-                                    <Text style={styles.errorText}>{errors.dosage}</Text>)
+                            {errors.dosage &&
+                                (<Text style={styles.errorText}>{errors.dosage}</Text>)
                             }
                         </View>
                     </View>
@@ -247,13 +263,6 @@ export default function AddMedicationScreen() {
                             <Ionicons name="chevron-forward" size={20} color={"#666"} />
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => setShowTimePicker(true)}>
-                            <View>
-                                <Ionicons name="time" size={24} color={"#1a8e2d"} />
-                            </View>
-                            <Text>Time: {form.times[0]}</Text>
-                        </TouchableOpacity>
-
                         {showDatePicker && (
                             <DateTimePicker
                                 value={form.startDate}
@@ -267,6 +276,38 @@ export default function AddMedicationScreen() {
                             />
                         )}
 
+                        {form.frequency && form.frequency! == "As needed" && (
+
+                            <View style={styles.timesContainer}>
+                                <Text style={styles.timesTitle}>Medication Times</Text>
+
+                                {form.times.map((time, index) => (
+                                    <TouchableOpacity
+                                        key={index}
+                                        style={styles.timeButton}
+                                        onPress={() => {
+                                            setShowTimePicker(true)
+                                        }}
+                                    >
+                                        <View style={styles.timeIconContainer}>
+                                            <Ionicons
+                                                style={{ alignSelf: "center" }}
+                                                name="time"
+                                                size={24}
+                                                color={'#1a8e2d'}
+                                            />
+                                        </View>
+                                        <Text style={styles.timeButtonText}>{time}</Text>
+                                        <Ionicons
+                                            name="chevron-forward"
+                                            size={20}
+                                            color={'#666'}
+                                        />
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+
                         {showTimePicker && (
                             <DateTimePicker
                                 mode="time"
@@ -276,30 +317,46 @@ export default function AddMedicationScreen() {
                                     date.setHours(hours, minutes, 0, 0);
                                     return date;
                                 })()}
-                                onChange={onTimeChange}
-                            // display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, date) => {
+                                    setShowTimePicker(false);
+                                    if (date) {
+                                        const newTime = date.toLocaleTimeString('default', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false,
+                                        });
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            time: prev.times.map((t, i) => (i === 0 ? newTime : t)),
+                                        }))
+                                    }
+                                }}
                             />
                         )}
                     </View>
 
                     {/* Reminder */}
-                    <View>
-                        <View>
-                            <View>
-                                <View>
-                                    <View>
-                                        <Ionicons name="notifications" ccolor={"#1a8e2d"} />
+                    <View style={styles.section}>
+                        <View style={styles.card}>
+                            <View style={styles.switchRow}>
+                                <View style={styles.switchlabelContainer}>
+                                    <View style={styles.iconContainer}>
+                                        <Ionicons style={{ alignSelf: "center" }} size={16} name="notifications" ccolor={"#1a8e2d"} />
                                     </View>
                                     <View>
-                                        <Text>Reminder</Text>
-                                        <Text>
+                                        <Text style={styles.switchLabel}>Reminder</Text>
+                                        <Text style={styles.switchSubLabel}>
                                             Get notified when its time to take your medications
                                         </Text>
                                     </View>
                                 </View>
                                 <Switch
+                                    value={form.reminderEnabled}
                                     trackColor={{ false: "#ddd", true: "#1a8e2d" }}
                                     thumbColor={'white'}
+                                    onValueChange={(value) =>
+                                        setForm({ ...form, reminderEnabled: value })
+                                    }
                                 />
                             </View>
                         </View>
@@ -308,35 +365,64 @@ export default function AddMedicationScreen() {
                     {/* Refill Tracking */}
 
                     {/* Notes */}
-                    <View>
-                        <View>
+                    <View style={styles.section}>
+                        <View style={styles.textAreaContainer}>
                             <TextInput
+                                style={styles.textArea}
                                 placeholder="Add notes or special instructions..."
                                 placeholderTextColor='#999'
+                                value={form.notes}
+                                onChangeText={(text) => setForm({ ...form, notes: text })}
+                                multiline
+                                numberOfLines={4}
+                                textAlignVertical="top"
                             />
                         </View>
                     </View>
 
 
-                </ScrollView>
+                </Animated.ScrollView>
 
-                <View>
-                    <TouchableOpacity>
+                <Animated.View
+                    style={[
+                        styles.footer,
+                        {
+                            transform: [{ translateY: footerTranslateY }],
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                        }
+                    ]}
+                >
+                    <TouchableOpacity
+                        style={[
+                            styles.saveButton,
+                            // isSubmitting && styles.saveButtonDisabled,
+                        ]}
+                    >
                         <LinearGradient
                             colors={["#1a8e2d", "#146922"]}
+                            style={styles.saveButtonGradient}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                         >
-                            <Text>
+                            <Text style={styles.saveButtonText}>
                                 Add Medication
                                 {/* {isSubmitting ? "Adding..." : "Add Medication"} */}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
-                    <TouchableOpacity>
-                        <Text>Cancel</Text>
+
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => router.back()}
+                    // disabled={isSubmitting}
+                    >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
                     </TouchableOpacity>
-                </View>
+                </Animated.View>
+
             </View>
         </View>
     )
@@ -347,6 +433,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#f8f9fa",
         borderRadius: 10,
+        marginBottom: 20,
     },
     headerGradient: {
         position: 'absolute',
@@ -508,7 +595,7 @@ const styles = StyleSheet.create({
     dateIconContainer: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 10,
         backgroundColor: "#f5f5f5",
         justifyContent: "center",
         alignContent: "center",
@@ -519,4 +606,147 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: "#333",
     },
+    timesContainer: {
+        marginTop: 20
+    },
+    timesTitle: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#333",
+        marginBottom: 10,
+    },
+    timeButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "white",
+        borderRadius: 16,
+        padding: 15,
+        marginTop: 10,
+        borderWidth: 1,
+        borderColor: "#e0e0e0",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowRadius: 8,
+        shadowOpacity: 0.05,
+        elevation: 2,
+    },
+    timeIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        backgroundColor: "#f5f5f5",
+        justifyContent: "center",
+        alignContent: "center",
+        marginRight: 10,
+    },
+    timeButtonText: {
+        flex: 1,
+        fontSize: 16,
+        color: "#333",
+    },
+    card: {
+        backgroundColor: "white",
+        borderRadius: 16,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: "#e0e0e0",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    switchRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    switchlabelContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        flex: 1,
+    },
+    iconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        backgroundColor: "#f5f5f5",
+        justifyContent: "center",
+        alignContent: "center",
+        marginRight: 15,
+    },
+    switchLabel: {
+        fontSize: 20,
+        fontWeight: "600",
+        color: "#333",
+    },
+    switchSubLabel: {
+        fontSize: 12,
+        color: "#666",
+        marginTop: 2,
+    },
+    textAreaContainer: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: "#e0e0e0",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    textArea: {
+        height: 100,
+        padding: 15,
+        fontSize: 16,
+        color: "#333",
+    },
+    footer: {
+        padding: 20,
+        backgroundColor: "white",
+        borderTopWidth: 1,
+        borderTopColor: "#e0e0e0",
+    },
+    saveButton: {
+        borderRadius: 16,
+        overflow: "hidden",
+        marginBottom: 12,
+    },
+    saveButtonDisabled: {
+        opacity: 0.7,
+    },
+    saveButtonGradient: {
+        padding: 15,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    saveButtonText: {
+        color: "white",
+        fontSize: 16,
+        fontWeight: "700"
+    },
+    cancelButton: {
+        paddingVertical: 15,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#e0e0e0",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "white",
+    },
+    cancelButtonText: {
+        color: "#666",
+        fontSize: 16,
+        fontWeight: "600",
+    }
 })
