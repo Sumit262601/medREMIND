@@ -4,6 +4,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Link, useRouter } from "expo-router";
+import { addMedication } from "@/utils/storage";
+import { scheduleMedicationReminder } from "@/utils/notifications";
 
 const { width } = Dimensions.get("window");
 
@@ -215,7 +217,7 @@ export default function AddMedicationScreen() {
                 startDate: form.startDate.toISOString(),
             }
 
-            await AddMedicationScreen(medicationData);
+            await addMedication(medicationData);
 
             if (medicationData.reminderEnabled) {
                 await scheduleMedicationReminder(medicationData);

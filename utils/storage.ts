@@ -86,7 +86,7 @@ export async function recordDose(
             id: Math.random().toString(36).substr(2, 9),
             medicationId,
             timestamp,
-            taken,
+            taken, 
         };
         history.push(newDose);
 
