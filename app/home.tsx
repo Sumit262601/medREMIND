@@ -110,7 +110,7 @@ const HomeScreen = () => {
     // Calculate header background opacity based on scroll
     const headerBackground = scrollY.interpolate({
         inputRange: [0, 100],
-        outputRange: ["#1a8e2d", "rgba(16, 107, 9, 0.96)"],
+        outputRange: ["#1a8e2d", "#146922"],
         extrapolate: 'clamp'
     });
 

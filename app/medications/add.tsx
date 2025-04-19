@@ -109,7 +109,11 @@ export default function AddMedicationScreen() {
                             styles.optionCard,
                             selectedFrequency === freq.label && styles.selectedOptionCard
                         ]}
-                    // onPrress={ }
+                        onPress={() => {
+
+                            setSelectedFrequency(freq.label);
+                            setForm({ ...form, frequency: freq.label });
+                        }}
                     >
                         <View style={[
                             styles.optionIcon,
@@ -147,7 +151,10 @@ export default function AddMedicationScreen() {
                             styles.optionCard,
                             selectedDuration === dur.label && styles.selectedOptionCard
                         ]}
-                    // onPrress={ }
+                        onPress={() => {
+                            setSelectedDuration(dur.label);
+                            setForm({ ...form, duration: dur.label });
+                        }}
                     >
                         <Text
                             style={[
@@ -482,6 +489,7 @@ export default function AddMedicationScreen() {
                             styles.saveButton,
                             isSubmitting && styles.saveButtonDisabled,
                         ]}
+                        onPress={() => handleSave()}
                     >
                         <LinearGradient
                             colors={["#1a8e2d", "#146922"]}
@@ -490,7 +498,6 @@ export default function AddMedicationScreen() {
                             end={{ x: 1, y: 0 }}
                         >
                             <Text style={styles.saveButtonText}>
-                                Add Medication
                                 {isSubmitting ? "Adding..." : "Add Medication"}
                             </Text>
                         </LinearGradient>
