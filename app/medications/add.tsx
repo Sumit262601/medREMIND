@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Platform, Dimensions, Animated } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Platform, Dimensions, Animated, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -83,6 +83,7 @@ export default function AddMedicationScreen() {
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [selectedFrequency, setSelectedFrequency] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedDuration, setSelectedDuration] = useState("");
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -162,6 +163,87 @@ export default function AddMedicationScreen() {
                 ))}
             </View>
         )
+    };
+
+    const validateForm = () => {
+        const newErrors: { [key: string]: string } = {};
+
+        if (!form.name.trim()) {
+            newErrors.name = "Medication name is required.";
+        }
+
+        if (!form.dosage.trim()) {
+            newErrors.name = "Dosage is required.";
+        }
+
+        if (!form.frequency) {
+            newErrors.frequency = "Frequency is required.";
+        }
+
+        if (!form.duration) {
+            newErrors.duration = "Duration is required.";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    }
+
+    const handleSave = async () => {
+        try {
+
+            // 
+            if (!validateForm()) {
+                Alert.alert("Error", "Please fill in all required fields.");
+                return;
+            }
+
+            // Save the medication data to the database or API
+            if (isSubmitting) return;
+            setIsSubmitting(true);
+
+            const colors = ["#4CAF50", "#2196F3", "#FF9800", "#E91E63", "#9C27B0", "#3F51B5", "#009688", "#FF5722"];
+            const ramdomColor = colors[Math.floor(Math.random() * colors.length)];
+
+            const medicationData = {
+                id: Math.random().toString(36).substr(2, 9),
+                ...form,
+                currentSupply: form.currentSupply ? Number(form.currentSupply) : 0,
+
+                totalSupply: form.currentSupply ? Number(form.currentSupply) : 0,
+                refillAt: form.refillAt ? Number(form.refillAt) : 0,
+                color: ramdomColor,
+                startDate: form.startDate.toISOString(),
+            }
+
+            await AddMedicationScreen(medicationData);
+
+            if (medicationData.reminderEnabled) {
+                await scheduleMedicationReminder(medicationData);
+            }
+
+            Alert.alert(
+                "Success",
+                "Medication added successfully.",
+                [
+                    {
+                        text: "OK",
+                        onPress: () => router.back(),
+                    },
+                ],
+                { cancelable: false }
+            );
+
+        } catch (error) {
+            console.log("Save error:", error);
+            Alert.alert(
+                "Error",
+                "Falied to save medciation. Please try again.",
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -379,8 +461,6 @@ export default function AddMedicationScreen() {
                             />
                         </View>
                     </View>
-
-
                 </Animated.ScrollView>
 
                 <Animated.View
@@ -398,7 +478,7 @@ export default function AddMedicationScreen() {
                     <TouchableOpacity
                         style={[
                             styles.saveButton,
-                            // isSubmitting && styles.saveButtonDisabled,
+                            isSubmitting && styles.saveButtonDisabled,
                         ]}
                     >
                         <LinearGradient
@@ -409,7 +489,7 @@ export default function AddMedicationScreen() {
                         >
                             <Text style={styles.saveButtonText}>
                                 Add Medication
-                                {/* {isSubmitting ? "Adding..." : "Add Medication"} */}
+                                {isSubmitting ? "Adding..." : "Add Medication"}
                             </Text>
                         </LinearGradient>
                     </TouchableOpacity>
@@ -417,7 +497,7 @@ export default function AddMedicationScreen() {
                     <TouchableOpacity
                         style={styles.cancelButton}
                         onPress={() => router.back()}
-                    // disabled={isSubmitting}
+                        disabled={isSubmitting}
                     >
                         <Text style={styles.cancelButtonText}>Cancel</Text>
                     </TouchableOpacity>
@@ -477,6 +557,7 @@ const styles = StyleSheet.create({
     },
     formContentContainer: {
         padding: 20,
+        paddingBottom: 45,
     },
     section: {
         marginBottom: 25,
@@ -706,7 +787,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     textArea: {
-        height: 100,
+        height: 130,
         padding: 15,
         fontSize: 16,
         color: "#333",

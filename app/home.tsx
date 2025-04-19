@@ -105,22 +105,23 @@ function CircularProgress({
 
 const HomeScreen = () => {
     const scrollY = useRef(new Animated.Value(0)).current;
-    const headerHeight = 180; // Adjust this value based on your header height
+    const router = useRouter();
 
+    // Calculate header background opacity based on scroll
     const headerBackground = scrollY.interpolate({
-        inputRange: [0, headerHeight - 60],
-        outputRange: ["transparent", "#1a8e2d"],
+        inputRange: [0, 100],
+        outputRange: ["#1a8e2d", "rgba(16, 107, 9, 0.96)"],
         extrapolate: 'clamp'
     });
-
-    const router = useRouter();
 
     return (
         <View style={styles.container}>
             <Animated.View
                 style={[
-                    styles.stickyHeader,
-                    { backgroundColor: headerBackground, }
+                    styles.staticHeader,
+                    {
+                        backgroundColor: headerBackground,
+                    }
                 ]}
             >
                 <View style={styles.headerTop}>
@@ -129,18 +130,16 @@ const HomeScreen = () => {
                     </View>
                     <TouchableOpacity style={styles.notificationButton}>
                         <Ionicons name="notifications-outline" size={24} color="white" />
-                        {
-                            <View style={styles.notificationBadage}>
-                                <Text style={styles.notificationCount}>3</Text>
-                            </View>
-                        }
+                        <View style={styles.notificationBadge}>
+                            <Text style={styles.notificationCount}>3</Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
             </Animated.View>
 
-            <Animated.ScrollView
+            <Animated.ScrollView 
                 showsVerticalScrollIndicator={true}
-                style={styles.container}
+                style={[styles.container, { marginTop: 90 }]}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
                     { useNativeDriver: false }
@@ -149,20 +148,6 @@ const HomeScreen = () => {
             >
                 <LinearGradient colors={["#1a8e2d", "#146922"]} style={styles.header}>
                     <View style={styles.headerContent}>
-                        {/* <View style={styles.headerTop}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.greeting}>Daily Progress</Text>
-                            </View>
-                            <TouchableOpacity style={styles.notificationButton}>
-                                <Ionicons name="notifications-outline" size={24} color="white" />
-                                {
-                                    <View style={styles.notificationBadage}>
-                                        <Text style={styles.notificationCount}>3</Text>
-                                    </View>
-                                }
-                            </TouchableOpacity>
-                        </View> */}
-                        {/* Circular Progress bar */}
                         <CircularProgress progress={70} total={10} completed={5} />
                     </View>
                 </LinearGradient>
@@ -286,18 +271,18 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#f8f9fa",
     },
-    stickyHeader: {
+    staticHeader: {
         position: "absolute",
-        // top: 0,
         left: 0,
         right: 0,
+        top: 0,
         zIndex: 10,
         height: 90,
         justifyContent: "center",
         paddingHorizontal: 20,
     },
     header: {
-        paddingTop: 80,
+        paddingTop: 20, // Reduced padding since we have static header
         paddingBottom: 25,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
@@ -307,11 +292,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 50,
     },
     headerTop: {
-        top: 20,
         flexDirection: "row",
         alignItems: "center",
         width: "100%",
-        marginBottom: 20,
+        marginTop: 30, // Adjust for status bar
     },
     greeting: {
         fontSize: 18,
@@ -330,7 +314,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         marginLeft: 8,
     },
-    notificationBadage: {
+    notificationBadge: {
         position: 'absolute',
         top: -6,
         right: -4,
@@ -342,7 +326,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
         borderWidth: 2,
         minWidth: 20,
-        borderColor: "#146922",
+        borderColor: "transparent",
     },
     notificationCount: {
         fontSize: 11,
