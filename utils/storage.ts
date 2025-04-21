@@ -27,7 +27,7 @@ export interface DoseHistory {
     taken: boolean;
 }
 
-export async function getMedications(): Promise<Medication[]> {
+export async function getMedication(): Promise<Medication[]> {
     try {
         const data = await AsyncStorage.getItem(MEDICATION_KEY);
         return data ? JSON.parse(data) : [];
@@ -39,7 +39,7 @@ export async function getMedications(): Promise<Medication[]> {
 
 export async function addMedication(medication: Medication): Promise<void> {
     try {
-        const medications = await getMedications();
+        const medications = await getMedication();
         medications.push(medication);
 
         await AsyncStorage.setItem(MEDICATION_KEY, JSON.stringify(medications));
@@ -86,7 +86,7 @@ export async function recordDose(
             id: Math.random().toString(36).substr(2, 9),
             medicationId,
             timestamp,
-            taken, 
+            taken,
         };
         history.push(newDose);
 

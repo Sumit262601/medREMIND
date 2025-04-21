@@ -1,8 +1,10 @@
+import { registerForPushNotificationsAsync, scheduleMedicationReminder } from "@/utils/notifications";
+import { DoseHistory, getMedication, getTodaysDoses, Medication, recordDose } from "@/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Link, useRouter } from "expo-router";
+import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Animated, Dimensions, StyleSheet, Modal } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Animated, Dimensions, StyleSheet, Modal, registerCallableModule, AppState, Alert } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 const { width } = Dimensions.get('window');
@@ -106,6 +108,114 @@ function CircularProgress({
 const HomeScreen = () => {
     const scrollY = useRef(new Animated.Value(0)).current;
     const router = useRouter();
+    const [todaysMedications, setTodaysMedications] = useState<Medication[]>([]);
+    const [completedDoses, setCompletedDoses] = useState(0);
+    const [doseHistory, setDoseHistory] = useState<DoseHistory[]>([]);
+    const [medications, setMedications] = useState<Medication[]>([]);
+
+    const loadMedications = useCallback(async () => {
+        try {
+            const [allMedications, todaysDoses] = await Promise.all([
+                getMedication(),
+                getTodaysDoses(),
+            ]);
+
+            setDoseHistory(todaysDoses);
+            setMedications(allMedications);
+
+            const today = new Date();
+
+            const todayMeds = allMedications.filter((med) => {
+                const startDate = new Date(med.startDate);
+                const durationsDays = parseInt(med.duration.split(" ")[0]);
+
+                if (
+                    durationsDays === -1 ||
+                    (today >= startDate &&
+                        today <=
+                        new Date(
+                            startDate.getTime() + durationsDays * 24 * 60 * 60 * 100)
+                    )
+                ) {
+                    return true;
+                }
+                return false;
+            })
+
+            setTodaysMedications(todayMeds);
+
+            const completed = todaysDoses.filter((dose) => dose.taken).length;
+            setCompletedDoses(completed);
+
+        } catch (error) {
+            console.error("Error loading medications:", error);
+        }
+    }, []);
+
+    const setupNotifications = async () => {
+        try {
+            const token = await registerForPushNotificationsAsync();
+            if (!token) {
+                console.log("Failed to get push notification token");
+                return;
+            }
+
+            const medications = await getMedication();
+            for (const medication of medications) {
+                if (medication.reminderEnabled) {
+                    await scheduleMedicationReminder(medication);
+                }
+            }
+        } catch (error) {
+            console.error("Error setting up notifications:", error);
+        }
+    }
+
+    useEffect(() => {
+        loadMedications()
+        setupNotifications()
+
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState === 'active') {
+                loadMedications();
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+
+
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            const unsubscribe = () => {
+
+            };
+
+            loadMedications();
+            return () => unsubscribe();
+        }, [loadMedications])
+    );
+
+    const handlerTakeDose = async (medication: Medication) => {
+        try {
+            await recordDose(medication.id, new Date().toISOString(), true);
+            await loadMedications();
+        } catch (error) {
+            console.log("Error recording dose:",error);
+            Alert.alert("Error", "Failed to record dose. Pease try again");
+        }
+    };
+
+    const isDoseTaken = (medicationId: string) => {
+        return doseHistory.some(
+            (dose) => dose.medicationId === medicationId && dose.taken
+        );
+    };
+
+
 
     // Calculate header background opacity based on scroll
     const headerBackground = scrollY.interpolate({
@@ -137,7 +247,7 @@ const HomeScreen = () => {
                 </View>
             </Animated.View>
 
-            <Animated.ScrollView 
+            <Animated.ScrollView
                 showsVerticalScrollIndicator={true}
                 style={[styles.container, { marginTop: 90 }]}
                 onScroll={Animated.event(
