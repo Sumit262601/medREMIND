@@ -77,7 +77,7 @@ function CircularProgress({
         <View style={styles.progressContainer}>
             <View style={styles.progresTextContainer}>
                 <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
-                <Text style={styles.progressLabel}>{completed} of {total} Done</Text>
+                <Text style={styles.progressLabel}>{completed} of {total} Doses</Text>
             </View>
             <Svg width={size} height={size} style={styles.progressRing}>
                 <Circle
@@ -191,7 +191,7 @@ const HomeScreen = () => {
     useFocusEffect(
         useCallback(() => {
             const unsubscribe = () => {
-
+                // cleanup if needed
             };
 
             loadMedications();
@@ -218,7 +218,6 @@ const HomeScreen = () => {
     const progress = todaysMedications.length > 0
         ? completedDoses / (todaysMedications.length * 2)
         : 0;
-
 
 
     // Calculate header background opacity based on scroll
@@ -262,7 +261,7 @@ const HomeScreen = () => {
             >
                 <LinearGradient colors={["#1a8e2d", "#146922"]} style={styles.header}>
                     <View style={styles.headerContent}>
-                        <CircularProgress progress={70} total={10} completed={5} />
+                        <CircularProgress progress={progress} total={todaysMedications.length * 2} completed={completedDoses} />
                     </View>
                 </LinearGradient>
 
@@ -303,7 +302,7 @@ const HomeScreen = () => {
                         </Link>
                     </View>
 
-                    {true ? (
+                    {todaysMedications.length === 0 ? (
                         <View style={styles.emptyState}>
                             <Ionicons name="medical-outline" size={48} color="#ccc" />
                             <Text style={styles.emptyStateText}>No Medications Scheduled for today</Text>
@@ -313,36 +312,41 @@ const HomeScreen = () => {
                                 </TouchableOpacity>
                             </Link>
                         </View>
-                    ) : (
-                        [].map((medications) => {
-                            // const taken = 
+                    ) : (todaysMedications.map((medication) => {
+                            const taken = isDoseTaken(medication.id)
                             return (
                                 <View style={styles.doseCard}>
                                     <View style={[styles.doseBadge,
-                                        // { 
-                                        //     backgroundColor: "#4CAF50" 
-                                        // }
+                                    {
+                                        backgroundColor: `${medication.color}50`
+                                    }
                                     ]}>
                                         <Ionicons name="medical" size={24} />
                                     </View>
                                     <View style={styles.doseInfo}>
                                         <View>
-                                            <Text style={styles.medicineName}>time</Text>
-                                            <Text style={styles.doseInfo}>dosage</Text>
+                                            <Text style={styles.medicineName}>{medication.name}</Text>
+                                            <Text style={styles.doseInfo}>{medication.dosage}</Text>
                                         </View>
                                         <View style={styles.doseTime}>
                                             <Ionicons name="time-outline" size={16} color="#ccc" />
-                                            <Text style={styles.timeText}>time</Text>
+                                            <Text style={styles.timeText}>{medication.times[0]}</Text>
                                         </View>
                                     </View>
 
-                                    {true ? (
+                                    {taken ? (
                                         <View style={styles.takeDoseButton}>
                                             <Ionicons name="checkmark-circle-outline" size={24} color="#4CAF50" />
                                             <Text style={styles.takeDoseText}>Taken</Text>
                                         </View>
                                     ) : (
-                                        <TouchableOpacity style={styles.takeDoseButton}>
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.takeDoseButton,
+                                                { backgroundColor: medication.color }
+                                            ]}
+                                            onPress={() => handlerTakeDose(medication)}
+                                        >
                                             <Text style={styles.takeDoseText}>Take</Text>
                                         </TouchableOpacity>
                                     )};
