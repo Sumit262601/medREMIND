@@ -204,7 +204,7 @@ const HomeScreen = () => {
             await recordDose(medication.id, new Date().toISOString(), true);
             await loadMedications();
         } catch (error) {
-            console.log("Error recording dose:",error);
+            console.log("Error recording dose:", error);
             Alert.alert("Error", "Failed to record dose. Pease try again");
         }
     };
@@ -214,6 +214,10 @@ const HomeScreen = () => {
             (dose) => dose.medicationId === medicationId && dose.taken
         );
     };
+
+    const progress = todaysMedications.length > 0
+        ? completedDoses / (todaysMedications.length * 2)
+        : 0;
 
 
 

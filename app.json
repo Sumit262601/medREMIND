@@ -37,6 +37,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "f1b709ca-6ad5-4639-bfe7-2ee63017e2f5"
+      }
+    },
+    "owner": "sumit_kr"
   }
 }
