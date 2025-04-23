@@ -12,7 +12,7 @@ import {
   AppState,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useFocusEffect, useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle } from "react-native-svg";
 import {
@@ -26,6 +26,8 @@ import {
   registerForPushNotificationsAsync,
   scheduleMedicationReminder,
 } from "../utils/notifications";
+import { useFocusEffect } from "@react-navigation/native";
+
 
 const { width } = Dimensions.get("window");
 
@@ -158,9 +160,9 @@ export default function HomeScreen() {
           durationDays === -1 ||
           (today >= startDate &&
             today <=
-              new Date(
-                startDate.getTime() + durationDays * 24 * 60 * 60 * 1000
-              ))
+            new Date(
+              startDate.getTime() + durationDays * 24 * 60 * 60 * 1000
+            ))
         ) {
           return true;
         }
@@ -426,7 +428,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   header: {
-    paddingTop: 50,
+    paddingTop: 40,
     paddingBottom: 25,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
